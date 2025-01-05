@@ -93,19 +93,41 @@ function removeFromFavorites(symbol) {
     }
 }
 
-function updateFavoriteList() {
-    const favoriteList = document.getElementById('favorite-coins-list');
-    favoriteList.innerHTML = '';
+async function updateFavoriteList() {
+    const tableBody = document.getElementById('favorite-coins-list');
+    tableBody.innerHTML = '';
 
-    favorites.forEach(symbol => {
-        const listItem = document.createElement('li');
-        listItem.innerHTML = `
-            ${symbol}
-            <button onclick="removeFromFavorites('${symbol}')">Çıkar</button>
-        `;
-        favoriteList.appendChild(listItem);
-    });
+    if (favorites.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="4">Favori coin bulunmamaktadır.</td></tr>';
+        return;
+    }
+
+    try {
+        const response = await fetch('https://api.binance.com/api/v3/ticker/24hr');
+        const data = await response.json();
+
+        favorites.forEach(symbol => {
+            const coinData = data.find(item => item.symbol === symbol);
+
+            if (coinData) {
+                const lastPrice = parseFloat(coinData.lastPrice).toFixed(4);
+                const priceChangePercent = parseFloat(coinData.priceChangePercent).toFixed(4);
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${symbol}</td>
+                    <td>${lastPrice}</td>
+                    <td>${priceChangePercent}%</td>
+                    <td class="favorite" onclick="removeFromFavorites('${symbol}')">Çıkar</td>
+                `;
+                tableBody.appendChild(row);
+            }
+        });
+    } catch (error) {
+        console.error("Favori coin bilgileri alınırken hata oluştu:", error);
+    }
 }
+
 
 function buyCoin(symbol, price) {
     const maxBuyable = Math.floor(balance / price);
@@ -151,21 +173,63 @@ function updatePortfolioTable() {
     const tableBody = document.getElementById('portfolio-data');
     tableBody.innerHTML = '';
     for (const [symbol, quantity] of Object.entries(portfolio)) {
-        const latestPrice = parseFloat(getLatestPrice(symbol));
+        const latestPrice = parseFloat(getLatestPrice(symbol)); // Son fiyatı al
         if (!isNaN(latestPrice)) {
-            const totalValue = quantity * latestPrice;
+            const totalValue = quantity * latestPrice; // Toplam değeri hesapla
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td>${symbol}</td>
-                <td>${parseFloat(quantity)}</td>
-                <td>${totalValue.toFixed(5)}</td>
+                <td>${quantity.toFixed(4)}</td>
+                <td>${totalValue.toFixed(4)}</td>
+                <td class="buy" onclick="handlePortfolioBuy('${symbol}', ${(parseFloat(latestPrice))})">Al</td>
+                <td class="sell" onclick="handlePortfolioSell('${symbol}', ${(parseFloat(latestPrice))})">Sat</td>
             `;
             tableBody.appendChild(row);
-        } else {
-            console.error(`${symbol} için geçerli bir fiyat bulunamadı.`);
         }
     }
 }
+
+function handlePortfolioBuy(symbol, price) {
+    const maxBuyable = Math.floor(balance / price);
+    const quantity = prompt(`Kaç adet ${symbol} almak istiyorsunuz? (Maks: ${maxBuyable})`);
+
+    if (!quantity) return;
+    const finalQuantity = parseFloat(quantity);
+
+    if (!isNaN(finalQuantity) && finalQuantity > 0 && finalQuantity * price <= balance) {
+        balance -= finalQuantity * price;
+        portfolio[symbol] = (portfolio[symbol] || 0) + finalQuantity;
+        updateData();
+        alert(`${finalQuantity} adet ${symbol} portföye alındı.`);
+    } else {
+        alert('Yetersiz bakiye veya geçersiz miktar!');
+    }
+}
+
+function handlePortfolioSell(symbol, price) {
+    if (!portfolio[symbol]) {
+        alert(`Portföyünüzde ${symbol} bulunmamaktadır.`);
+        return;
+    }
+
+    const maxSellable = portfolio[symbol];
+    const quantity = prompt(`Kaç adet ${symbol} satmak istiyorsunuz? (Maks: ${maxSellable})`);
+
+    if (!quantity) return;
+    const finalQuantity = parseFloat(quantity);
+
+    if (!isNaN(finalQuantity) && finalQuantity > 0 && finalQuantity <= maxSellable) {
+        balance += finalQuantity * price;
+        portfolio[symbol] -= finalQuantity;
+        if (portfolio[symbol] === 0) delete portfolio[symbol];
+        updateData();
+        alert(`${finalQuantity} adet ${symbol} portföyden satıldı.`);
+    } else {
+        alert('Yetersiz miktar veya geçersiz işlem!');
+    }
+}
+
+
 
 function getLatestPrice(symbol) {
     const row = Array.from(document.querySelectorAll('#major-coins-data tr')).find(row => row.cells[0].textContent === symbol);
@@ -176,4 +240,5 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('virtual-balance').textContent = balance.toFixed(5);
     fetchData();
     fetchTopMovers();
+    updateFavoriteList();
 });

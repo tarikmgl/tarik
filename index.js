@@ -100,7 +100,8 @@ function updateFavoriteList() {
     favorites.forEach(symbol => {
         const listItem = document.createElement('li');
         listItem.innerHTML = `
-            ${symbol} 
+            ${symbol}
+            Fiyat: ${lastPrice.toFixed(5)}
             <button onclick="removeFromFavorites('${symbol}')">Çıkar</button>
         `;
         favoriteList.appendChild(listItem);

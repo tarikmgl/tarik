@@ -101,7 +101,6 @@ function updateFavoriteList() {
         const listItem = document.createElement('li');
         listItem.innerHTML = `
             ${symbol}
-            Fiyat: ${lastPrice.toFixed(5)}
             <button onclick="removeFromFavorites('${symbol}')">Çıkar</button>
         `;
         favoriteList.appendChild(listItem);

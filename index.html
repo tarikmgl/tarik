@@ -1,13 +1,161 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>tarik mugul</title>
-</head>
-<body>
-    <h1></h1>
+    <title>Binance Coin Tracker & Portfolio</title>
+    <style>
+        body {
+            font-family: "Lucida Console", "Courier New", monospace;
+            margin: 0;
+            padding: 0;
+            background-color: #39026d;
+        }
 
-    <script src='index.js'></script>
+        header {
+            background-color: #c08cd4;
+            color: rgb(40, 1, 63);
+            padding: 30px;
+            text-align: center;
+        }
+
+        .container {
+            padding: 50px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #c08cd4;
+            color: rgb(40, 1, 63);
+        }
+
+        tr:nth-child(even) {
+            background-color: #c08cd4;
+        }
+
+        .favorite,
+        .buy,
+        .sell {
+            cursor: pointer;
+            color: #040005;
+            text-decoration: underline;
+        }
+
+        .balance {
+            font-size: 1.2em;
+            margin-bottom: 20px;
+            color: #ffffff;
+        }
+
+        #favorite-coins {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>Binance Coin Tracker & Sanal Portföy</h1>
+    </header>
+    <div class="container">
+        <div class="section balance" id="balance-section">
+            Sanal Bakiye: <span id="virtual-balance">10000</span> USD
+        </div>
+
+        <div class="section" id="major-coins">
+            <h2>Majör Coinler</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Coin</th>
+                        <th>Fiyat</th>
+                        <th>24h Değişim (%)</th>
+                        <th>Favorilere Ekle</th>
+                        <th>Favorilerden Çıkar</th>
+                        <th>Al</th>
+                        <th>Sat</th>
+                    </tr>
+                </thead>
+                <tbody id="major-coins-data">
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section" id="top-gainers">
+            <h2>En Çok Yükselen Coinler</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Coin</th>
+                        <th>Fiyat</th>
+                        <th>24h Değişim (%)</th>
+                        <th>Favorilere Ekle</th>
+                        <th>Favorilerden Çıkar</th>
+                        <th>Al</th>
+                        <th>Sat</th>
+                    </tr>
+                </thead>
+                <tbody id="top-gainers-data"></tbody>
+            </table>
+        </div>
+
+        <div class="section" id="top-losers">
+            <h2>En Çok Düşen Coinler</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Coin</th>
+                        <th>Fiyat</th>
+                        <th>24h Değişim (%)</th>
+                        <th>Favorilere Ekle</th>
+                        <th>Favorilerden Çıkar</th>
+                        <th>Al</th>
+                        <th>Sat</th>
+                    </tr>
+                </thead>
+                <tbody id="top-losers-data"></tbody>
+            </table>
+        </div>
+
+
+
+        <div class="section" id="portfolio">
+            <h2>Sanal Portföy</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Coin</th>
+                        <th>Miktar</th>
+                        <th>Toplam Değer (USD)</th>
+                    </tr>
+                </thead>
+                <tbody id="portfolio-data">
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section" id="favorite-coins">
+            <h2>Favori Coinler</h2>
+            <ul id="favorite-coins-list"></ul>
+        </div>
+    </div>
+
+    <script src="index.js">
+        
+    </script>
 </body>
+
 </html>

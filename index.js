@@ -24,9 +24,9 @@ function populateMajorCoins(coins) {
     coins.forEach(coin => {
         const row = document.createElement('tr');
         row.innerHTML = `
-                    <td>${coin.symbol}</td>
-                    <td>${(parseFloat(coin.lastPrice)).toFixed(5)}</td>
-                    <td>${parseFloat(coin.priceChangePercent).toFixed(5)}%</td>
+                    <td class="symbol">${coin.symbol}</td>
+                    <td class="symbol">${(parseFloat(coin.lastPrice)).toFixed(5)}</td>
+                    <td class="symbol">${parseFloat(coin.priceChangePercent).toFixed(5)}%</td>
                     <td class="favorite" onclick="addToFavorites('${coin.symbol}')">Ekle</td>
                     <td class="favorite" onclick="removeFromFavorites('${coin.symbol}')">Çıkar</td>
                     <td class="buy" onclick="buyCoin('${coin.symbol}', ${(parseFloat(coin.lastPrice))})">Al</td>
@@ -41,9 +41,11 @@ async function fetchTopMovers() {
         const response = await fetch('https://api.binance.com/api/v3/ticker/24hr');
         const data = await response.json();
 
-        const sortedData = [...data].sort((a, b) => parseFloat(b.priceChangePercent) - parseFloat(a.priceChangePercent));
-        const topGainers = sortedData.slice(0, 5);
-        const topLosers = sortedData.slice(-5);
+        const usdtPairs = data.filter(item => item.symbol.endsWith('USDT'));
+
+        const sortedData = [...usdtPairs].sort((a, b) => parseFloat(b.priceChangePercent) - parseFloat(a.priceChangePercent));
+        const topGainers = sortedData.slice(0, 5); 
+        const topLosers = sortedData.slice(-5);    
 
         populateCoinTable(topGainers, 'top-gainers-data');
         populateCoinTable(topLosers.reverse(), 'top-losers-data');
@@ -52,6 +54,7 @@ async function fetchTopMovers() {
     }
 }
 
+
 function populateCoinTable(coins, tableId) {
     const tableBody = document.getElementById(tableId);
     tableBody.innerHTML = '';
@@ -59,9 +62,9 @@ function populateCoinTable(coins, tableId) {
         const lastPrice = parseFloat(coin.lastPrice);
         const row = document.createElement('tr');
         row.innerHTML = `
-            <td>${coin.symbol}</td>
-            <td>${lastPrice.toFixed(5)}</td>
-            <td>${parseFloat(coin.priceChangePercent).toFixed(5)}%</td>
+            <td class="symbol">${coin.symbol}</td>
+            <td class="symbol">${lastPrice.toFixed(5)}</td>
+            <td class="symbol">${parseFloat(coin.priceChangePercent).toFixed(5)}%</td>
             <td class="favorite" onclick="addToFavorites('${coin.symbol}')">Ekle</td>
             <td class="favorite" onclick="removeFromFavorites('${coin.symbol}')">Çıkar</td>
             <td class="buy" onclick="buyCoin('${coin.symbol}', ${(parseFloat(coin.lastPrice))})">Al</td>
@@ -98,7 +101,7 @@ async function updateFavoriteList() {
     tableBody.innerHTML = '';
 
     if (favorites.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="4">Favori coin bulunmamaktadır.</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="6">Favori coin bulunmamaktadır.</td></tr>';
         return;
     }
 
@@ -115,9 +118,11 @@ async function updateFavoriteList() {
 
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td>${symbol}</td>
-                    <td>${lastPrice}</td>
-                    <td>${priceChangePercent}%</td>
+                    <td class="symbol">${symbol}</td>
+                    <td class="symbol">${lastPrice}</td>
+                    <td class="symbol">${priceChangePercent}%</td>
+                    <td class="buy" onclick="buyCoin('${symbol}', ${lastPrice})">Al</td>
+                    <td class="sell" onclick="sellCoin('${symbol}', ${lastPrice})">Sat</td>
                     <td class="favorite" onclick="removeFromFavorites('${symbol}')">Çıkar</td>
                 `;
                 tableBody.appendChild(row);
@@ -129,11 +134,10 @@ async function updateFavoriteList() {
 }
 
 
+
 function buyCoin(symbol, price) {
     const maxBuyable = Math.floor(balance / price);
     const quantity = parseFloat(prompt(`Kaç adet ${symbol} almak istiyorsunuz?(Maks: ${maxBuyable}) Maksimum almak için 'max' yazabilirsiniz.`));
-
-    //const finalQuantity = quantity.toLowerCase() === 'max' ? maxBuyable : parseInt(quantity, 10);
 
     if (quantity && quantity * price <= balance) {
         balance -= quantity * price;
@@ -149,8 +153,6 @@ function sellCoin(symbol, price) {
     const quantity = prompt(`
             Kaç adet ${symbol} satmak istiyorsunuz? (Maks: ${maxSellable})
             Maksimum satmak için 'max' yazabilirsiniz.`);
-
-    //const finalQuantity = quantity.toLowerCase() === 'max' ? maxSellable : parseInt(quantity, 10);
 
     if (quantity && portfolio[symbol] && portfolio[symbol] >= quantity) {
         balance += quantity * price;
@@ -173,21 +175,24 @@ function updatePortfolioTable() {
     const tableBody = document.getElementById('portfolio-data');
     tableBody.innerHTML = '';
     for (const [symbol, quantity] of Object.entries(portfolio)) {
-        const latestPrice = parseFloat(getLatestPrice(symbol)); // Son fiyatı al
-        if (!isNaN(latestPrice)) {
-            const totalValue = quantity * latestPrice; // Toplam değeri hesapla
+        const latestPrice = getLatestPrice(symbol); 
+        if (!isNaN(latestPrice) && latestPrice > 0) {
+            const totalValue = quantity * latestPrice; 
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td>${symbol}</td>
-                <td>${quantity.toFixed(4)}</td>
-                <td>${totalValue.toFixed(4)}</td>
-                <td class="buy" onclick="handlePortfolioBuy('${symbol}', ${(parseFloat(latestPrice))})">Al</td>
-                <td class="sell" onclick="handlePortfolioSell('${symbol}', ${(parseFloat(latestPrice))})">Sat</td>
+                <td class="symbol">${symbol}</td>
+                <td class="symbol">${quantity.toFixed(4)}</td>
+                <td class="symbol">${totalValue.toFixed(4)}</td>
+                <td class="buy" onclick="handlePortfolioBuy('${symbol}', ${latestPrice})">Al</td>
+                <td class="sell" onclick="handlePortfolioSell('${symbol}', ${latestPrice})">Sat</td>
             `;
             tableBody.appendChild(row);
+        } else {
+            console.error(`${symbol} için geçerli fiyat alınamadı.`);
         }
     }
 }
+
 
 function handlePortfolioBuy(symbol, price) {
     const maxBuyable = Math.floor(balance / price);
@@ -232,9 +237,14 @@ function handlePortfolioSell(symbol, price) {
 
 
 function getLatestPrice(symbol) {
-    const row = Array.from(document.querySelectorAll('#major-coins-data tr')).find(row => row.cells[0].textContent === symbol);
+    let row = Array.from(document.querySelectorAll('#major-coins-data tr')).find(row => row.cells[0].textContent === symbol);
+    if (!row) {
+        row = Array.from(document.querySelectorAll('#top-gainers-data tr')).find(row => row.cells[0].textContent === symbol) ||
+              Array.from(document.querySelectorAll('#top-losers-data tr')).find(row => row.cells[0].textContent === symbol);
+    }
     return row ? parseFloat(row.cells[1].textContent) : 0;
 }
+
 
 document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('virtual-balance').textContent = balance.toFixed(5);
